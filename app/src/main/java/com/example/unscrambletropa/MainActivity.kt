@@ -46,7 +46,15 @@ fun GameScreen() {
     var userAnswer by remember {
         mutableStateOf(&quot;&quot;)
     }
-    val correctAnswer = &quot;CAT&quot;
+    val words = listOf(
+        &quot;CAT&quot;,
+    &quot;DOG&quot;,
+    &quot;BOOK&quot;
+    )
+    var currentWordIndex by remember {
+        mutableStateOf(0)
+    }
+    val correctAnswer = words[currentWordIndex]
     var score by remember {
         mutableStateOf(0)
     }
@@ -60,8 +68,9 @@ fun GameScreen() {
         fontSize = 30.sp
         )
         Text(
-            text = &quot;TAC&quot;,
-        fontSize = 40.sp
+            text = correctAnswer,
+
+            fontSize = 40.sp
         )
         Text(
             text = &quot;Unscramble the word!&quot;
@@ -79,6 +88,10 @@ fun GameScreen() {
             onClick = {
                 if (userAnswer == correctAnswer) {
                     score++
+                    if (currentWordIndex &lt; words.size - 1) {
+                        currentWordIndex++
+                        userAnswer = &quot;&quot;
+                    }
                 }
             }
         ) {
@@ -86,7 +99,6 @@ fun GameScreen() {
         }
         Text(
             text = &quot;Score: $score&quot;
-
         )
     }
 }
