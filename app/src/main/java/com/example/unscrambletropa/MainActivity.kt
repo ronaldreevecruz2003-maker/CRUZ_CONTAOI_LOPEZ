@@ -19,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.unscrambletropa.ui.theme.UnscrambleTropaTheme
 
 class MainActivity : ComponentActivity() {
@@ -41,75 +43,86 @@ fun scrambleWord(word: String): String {
     return shuffled
 }
 
+class GameViewModel : ViewModel() {
+    private val words = listOf("CAT", "DOG", "BOOK")
+
+    var currentWordIndex by mutableStateOf(0)
+        private set
+
+    var score by mutableStateOf(0)
+        private set
+
+    var scrambledWord by mutableStateOf(scrambleWord(words[0]))
+        private set
+
+    var feedback by mutableStateOf("")
+        private set
+
+    val correctAnswer: String
+        get() = words[currentWordIndex]
+
+    val isGameOver: Boolean
+        get() = currentWordIndex >= words.size - 1 && feedback.isNotEmpty()
+
+    fun checkAnswer(userAnswer: String) {
+        if (userAnswer.equals(correctAnswer, ignoreCase = true)) {
+            score++
+            feedback = "Correct!"
+        } else {
+            feedback = "Wrong! It was $correctAnswer"
+        }
+
+        if (currentWordIndex < words.size - 1) {
+            currentWordIndex++
+            scrambledWord = scrambleWord(words[currentWordIndex])
+        }
+    }
+}
+
 @Composable
-fun GameScreen() {
-    var userAnswer by remember {
-        mutableStateOf(&quot;&quot;)
-    }
-    val words = listOf(
-        &quot;CAT&quot;,
-    &quot;DOG&quot;,
-    &quot;BOOK&quot;
-    )
-    var currentWordIndex by remember {
-        mutableStateOf(0)
-    }
-    val correctAnswer = words[currentWordIndex]
-    var scrambledWord by remember {
-        mutableStateOf(
-            words[0].shuffled().joinToString(&quot;&quot;)
-        )
-    }
-    var score by remember {
-        mutableStateOf(0)
-    }
+fun GameScreen(gameViewModel: GameViewModel = viewModel()) {
+    var userAnswer by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = &quot;UNSCRAMBLE&quot;,
-        fontSize = 30.sp
+            text = "UNSCRAMBLE",
+            fontSize = 30.sp
         )
         Text(
-            text = scrambledWord,
+            text = gameViewModel.scrambledWord,
             fontSize = 40.sp
         )
         Text(
-            text = &quot;Unscramble the word!&quot;
+            text = "Unscramble the word!"
         )
         OutlinedTextField(
             value = userAnswer,
-
             onValueChange = {
                 userAnswer = it
             },
             label = {
-                Text(&quot;Enter your answer&quot;)
+                Text("Enter your answer")
             }
         )
         Button(
             onClick = {
-                if (userAnswer == correctAnswer) {
-                    score++
-                    if (currentWordIndex &lt; words.size - 1) {
-                        currentWordIndex++
-                        userAnswer = &quot;&quot;
-                        scrambledWord = words[currentWordIndex]
-                            .shuffled()
-                            .joinToString(&quot;&quot;)
-                    }
-                }
+                gameViewModel.checkAnswer(userAnswer)
+                userAnswer = ""
             }
         ) {
-            Text(&quot;SUBMIT&quot;)
+            Text("SUBMIT")
         }
+        Text(text = gameViewModel.feedback)
         Text(
-            text = &quot;Score: $score&quot;
+            text = "Score: ${gameViewModel.score}"
         )
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun GameScreenPreview() {
