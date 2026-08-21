@@ -39,19 +39,51 @@ class MainActivity : ComponentActivity() {
 data class GameUiState(
     val scrambledWord: String = "",
     val userAnswer: String = "",
-    val score: Int = 0
+    val score: Int = 0,
+    val isGuessWrong: Boolean = false
 )
 
 class GameViewModel : ViewModel() {
-    val words: List<String> = listOf("CAT", "DOG", "BOOK")
+    private val words: List<String> = listOf("CAT", "DOG", "BOOK")
+    private var currentWordIndex = 0
 
     private val _uiState = MutableStateFlow(
-        GameUiState(
-            scrambledWord = words[0].toList().shuffled().joinToString("")
-        )
+        GameUiState(scrambledWord = shuffleWord(words[0]))
     )
-
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
+
+    private fun shuffleWord(word: String): String {
+        val letters = word.toList()
+        var shuffled: List<Char>
+        do {
+            shuffled = letters.shuffled()
+        } while (shuffled.zip(letters).any { it.first == it.second })
+        return shuffled.joinToString("")
+    }
+
+    fun updateUserAnswer(answer: String) {
+        _uiState.value = _uiState.value.copy(
+            userAnswer = answer,
+            isGuessWrong = false
+        )
+    }
+
+    fun checkAnswer() {
+        val currentWord = words[currentWordIndex]
+        val isCorrect = _uiState.value.userAnswer.equals(currentWord, ignoreCase = true)
+
+        if (isCorrect) {
+            currentWordIndex = (currentWordIndex + 1) % words.size
+            _uiState.value = _uiState.value.copy(
+                score = _uiState.value.score + 1,
+                userAnswer = "",
+                isGuessWrong = false,
+                scrambledWord = shuffleWord(words[currentWordIndex])
+            )
+        } else {
+            _uiState.value = _uiState.value.copy(isGuessWrong = true)
+        }
+    }
 }
 
 @Composable
@@ -77,13 +109,14 @@ fun GameScreen() {
         )
         OutlinedTextField(
             value = uiState.userAnswer,
-            onValueChange = {},
+            onValueChange = { viewModel.updateUserAnswer(it) },
+            isError = uiState.isGuessWrong,
             label = {
-                Text("Enter your answer")
+                Text(if (uiState.isGuessWrong) "Wrong guess, try again" else "Enter your answer")
             }
         )
         Button(
-            onClick = {}
+            onClick = { viewModel.checkAnswer() }
         ) {
             Text("SUBMIT")
         }
@@ -92,6 +125,7 @@ fun GameScreen() {
         )
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun GameScreenPreview() {
