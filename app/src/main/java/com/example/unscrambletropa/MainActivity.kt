@@ -7,10 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,10 +33,22 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun scrambleWord(word: String): String {
+    var shuffled = word
+    while (shuffled == word) {
+        shuffled = word.toList().shuffled().joinToString("")
+    }
+    return shuffled
+}
+
 @Composable
 fun GameScreen() {
     var userAnswer by remember {
-        mutableStateOf("")
+        mutableStateOf(&quot;&quot;)
+    }
+    val correctAnswer = &quot;CAT&quot;
+    var score by remember {
+        mutableStateOf(0)
     }
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -46,15 +56,15 @@ fun GameScreen() {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "UNSCRAMBLE",
-            fontSize = 30.sp
+            text = &quot;UNSCRAMBLE&quot;,
+        fontSize = 30.sp
         )
         Text(
-            text = "TAC",
-            fontSize = 40.sp
+            text = &quot;TAC&quot;,
+        fontSize = 40.sp
         )
         Text(
-            text = "Unscramble the word!"
+            text = &quot;Unscramble the word!&quot;
         )
         OutlinedTextField(
             value = userAnswer,
@@ -62,21 +72,24 @@ fun GameScreen() {
                 userAnswer = it
             },
             label = {
-                Text("Enter your answer")
+                Text(&quot;Enter your answer&quot;)
             }
         )
-
         Button(
-            onClick = { }
+            onClick = {
+                if (userAnswer == correctAnswer) {
+                    score++
+                }
+            }
         ) {
-            Text("SUBMIT")
+            Text(&quot;SUBMIT&quot;)
         }
         Text(
-            text = "Score: 0"
+            text = &quot;Score: $score&quot;
+
         )
     }
 }
-
 @Preview(showBackground = true)
 @Composable
 fun GameScreenPreview() {
