@@ -55,6 +55,11 @@ fun GameScreen() {
         mutableStateOf(0)
     }
     val correctAnswer = words[currentWordIndex]
+    var scrambledWord by remember {
+        mutableStateOf(
+            words[0].shuffled().joinToString(&quot;&quot;)
+        )
+    }
     var score by remember {
         mutableStateOf(0)
     }
@@ -68,8 +73,7 @@ fun GameScreen() {
         fontSize = 30.sp
         )
         Text(
-            text = correctAnswer,
-
+            text = scrambledWord,
             fontSize = 40.sp
         )
         Text(
@@ -77,6 +81,7 @@ fun GameScreen() {
         )
         OutlinedTextField(
             value = userAnswer,
+
             onValueChange = {
                 userAnswer = it
             },
@@ -91,6 +96,9 @@ fun GameScreen() {
                     if (currentWordIndex &lt; words.size - 1) {
                         currentWordIndex++
                         userAnswer = &quot;&quot;
+                        scrambledWord = words[currentWordIndex]
+                            .shuffled()
+                            .joinToString(&quot;&quot;)
                     }
                 }
             }
